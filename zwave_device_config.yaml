@@ -1,0 +1,48 @@
+light.kitchena_level_9_0:
+  ignored: false
+  polling_intensity: 1
+light.kitchenb_level_10_0:
+  ignored: false
+  polling_intensity: 1
+light.lamp_level_7_0:
+  ignored: false
+  polling_intensity: 1
+zwave.lamp_7:
+  ignored: false
+  polling_intensity: 1
+zwave.linear_lb60z1_dimmable_led_light_bulb_14:
+  ignored: false
+  polling_intensity: 1
+light.linear_lb60z1_dimmable_led_light_bulb_level_14_0:
+  ignored: false
+  polling_intensity: 1
+sensor.door_alarm_level_8_1:
+  ignored: true
+  polling_intensity: 0
+sensor.door_alarm_type_8_0:
+  ignored: true
+  polling_intensity: 0
+sensor.door_burglar_8_10:
+  ignored: true
+  polling_intensity: 0
+sensor.door_sourcenodeid_8_2:
+  ignored: true
+  polling_intensity: 0
+sensor.hallmotion_burglar_12_10:
+  ignored: true
+  polling_intensity: 0
+sensor.hallmotion_sourcenodeid_12_2:
+  ignored: true
+  polling_intensity: 0
+sensor.kitchenmotion_alarm_level_12_1:
+  ignored: true
+  polling_intensity: 0
+sensor.kitchenmotion_alarm_type_12_0:
+  ignored: true
+  polling_intensity: 0
+sensor.kitchenmotion_burglar_12_10:
+  ignored: true
+  polling_intensity: 0
+sensor.kitchenmotion_power_management_12_11:
+  ignored: true
+  polling_intensity: 0

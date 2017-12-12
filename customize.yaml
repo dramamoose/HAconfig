@@ -1,0 +1,149 @@
+light.flux_window:
+  friendly_name: Window Light
+light.entry_level:
+  friendly_name: Entrance Light
+light.lamp_level:
+  emulated_hue_name: Megan's lamp
+  friendly_name: Lamp
+media_player.living_room_home:
+  friendly_name: Google Home
+media_player.living_room_speakers:
+  friendly_name: Desktop Speakers
+media_player.bedroom_speakers:
+  friendly_name: Bedroom Speakers
+group.kitchenlight:
+  emulated_hue_hidden: false
+  emulated_hue_name: kitchen light
+light.kitchena_level:
+  emulated_hue_hidden: true
+light.kitchenb_level:
+  emulated_hue_hidden: true
+light.hall_level:
+  friendly_name: Hall Light
+group.livingroomlights:
+  emulated_hue_hidden: false
+  emulated_hue_name: Living Room Lights
+sensor.door_alarm_level:
+  hidden: true
+sensor.door_alarm_type:
+  hidden: true
+sensor.door_burglar:
+  hidden: true
+sensor.door_sourcenodeid:
+  hidden: true
+sensor.kitchenmotion_alarm_level:
+  hidden: true
+sensor.kitchenmotion_alarm_type:
+  hidden: true
+sensor.kitchenmotion_burglar:
+  hidden: true
+sensor.kitchenmotion_power_management:
+  hidden: true
+sensor.kitchenmotion_sourcenodeid:
+  hidden: true
+binary_sensor.door_sensor:
+  device_class: opening
+binary_sensor.kitchenmotion_sensor:
+  device_class: motion
+switch.tv_power:
+  emulated_hue_hidden: false
+  emulated_hue_name: Television
+  icon: mdi:television
+script.tv_hdmi1_1:
+  emulated_hue_hidden: true
+  emulated_hue_name: View Chromecast
+  friendly_name: Chromecast
+  icon: mdi:google-chrome
+script.tv_hdmi1_2:
+  emulated_hue_hidden: true
+  emulated_hue_name: View Computer
+  friendly_name: PC
+  icon: mdi:desktop-tower
+script.tv_hdmi1_3:
+  emulated_hue_hidden: true
+  emulated_hue_name: View PS3
+  friendly_name: PS3
+  icon: mdi:gamepad-variant
+script.tv_antenna:
+  emulated_hue_name: Antenna
+  friendly_name: Antenna
+  icon: mdi:signal-variant
+script.tv_hdmi2:
+  emulated_hue_hidden: true
+  emulated_hue_name: View The Wii
+  friendly_name: WiiU
+  icon: mdi:gamepad-variant
+script.tv_hdmi1_4:
+  emulated_hue_hidden: false
+  emulated_hue_name: View PS3
+  friendly_name: Switch
+  icon: mdi:gamepad-variant
+script.tv_hdmi1_5:
+  emulated_hue_hidden: false
+  emulated_hue_name: View PS3
+  friendly_name: Input 5
+group.fanlight:
+  emulated_hue_name: Fan Lights
+device_tracker.yeelinklightcolor1_miio48228988: {}
+binary_sensor.hallmotion_sensor:
+  device_class: motion
+binary_sensor.floorplan:
+  custom_ui_state_card: floorplan
+  config:
+    name: Demo Floorplan
+    image: /local/custom_ui/floorplan/floorplan.svg
+    stylesheet: /local/custom_ui/floorplan/floorplan.css
+    last_motion_entity: sensor.template_last_motion
+    last_motion_class: last-motion
+    warnings:
+    pan_zoom:
+    groups:
+    - name: Sensors
+      entities:
+      - sensor.dark_sky_temperature
+      - sensor.broadlink_sensor_temperature
+    - name: Lights
+      entities:
+      - light.lamp_level
+      - light.flux_window
+      - light.entrylight_level
+      - group.kitchenlight
+      - group.fanlight
+      - light.bedroom_leds
+      states:
+      - state: 'on'
+        class: light-on
+      - state: 'off'
+        class: light-off
+      action:
+        domain: homeassistant
+        service: toggle
+    - name: Switches
+      entities:
+      - group.television
+      states:
+      - state: 'on'
+        class: doorbell-on
+      - state: 'off'
+        class: doorbell-off
+    - name: Binary sensors
+      entities:
+      - binary_sensor.door_sensor
+      - binary_sensor.kitchenmotion_sensor
+      states:
+      - state: 'off'
+        class: info-background
+      - state: 'on'
+        class: warning-background
+      state_transitions:
+      - name: On to off
+        from_state: 'on'
+        to_state: 'off'
+        duration: 10
+    - name: Cameras
+      entities:
+      - camera.catsat
+      states:
+      - state: idle
+        class: camera-idle
+automation.kitchen_lights_off: {}

@@ -1,0 +1,597 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: 40.763517
+  longitude: -111.865692
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 1299
+  # metric for Metric, imperial for Imperial
+  unit_system: imperial
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: America/Denver
+  customize: !include customize.yaml
+
+
+config:
+
+notify:
+  - name: PushBullet
+    platform: pushbullet
+    api_key: o.beKilLIszRIjKqb7FngvFIG8xyGmmDv1
+
+group:
+#    default_view:
+#        view: yes
+#        entities:
+#          - group.livingroomhardware
+#          - group.bedroomhardware
+#          - media_player.full_house
+
+    weather:
+        name: Weather
+        view: yes
+        entities:
+          - camera.SLCRadar
+          - camera.EKORadar
+          - camera.Satellite
+          - sensor.dark_sky_apparent_temperature
+          - sensor.dark_sky_cloud_coverage
+          - sensor.dark_sky_daily_high_apparent_temperature
+          - sensor.dark_sky_daily_low_apparent_temperature
+          - sensor.dark_sky_precip_probability
+          - sensor.dark_sky_precip_type
+    livingroom:
+        name: Main Room
+        view: yes
+        entities:
+          - group.livingroomlights
+          - media_player.living_room_speakers
+          - media_player.living_room_home
+          - binary_sensor.door_sensor
+    television:
+        name: Television
+        control: hidden
+        entities:
+          - switch.tv_power
+          - script.tv_antenna
+          - script.tv_hdmi1_1
+          - script.tv_hdmi1_2
+          - script.tv_hdmi1_3
+          - script.tv_hdmi1_4
+          - script.tv_hdmi1_5
+          - script.tv_hdmi2
+    Catsat:
+        name: Cat Surveillance Satellite
+        entities:
+          - input_select.foscam_position
+          - camera.catsat
+
+    livingroomlights:
+        name: Living Room Lights
+        entities:
+          - light.entry_level
+          - light.lamp_level
+          - group.kitchenlight
+          - light.flux_window
+          - input_number.brightness_lr
+    kitchenlight:
+        name: Kitchen Light
+        entities:
+          - light.kitchena_level
+          - light.kitchenb_level
+    fanlight:
+        name: Fan Light
+        entities:
+#          - light.fan1
+          - light.fan2
+          - light.fan3
+    bedroom:
+        name: Bedroom
+        view: yes
+        entities: 
+          - media_player.bedroom_speakers
+          - group.bedroomleds
+    bedroomleds:
+        name: Bedroom LEDs
+        entities:
+          - light.bedroom_leds
+          - input_select.bedroom_led_effect
+          - input_number.bedroom_animation_speed
+#          - Overhead Bedroom Light
+#          - Bedroom Window Light
+#          - Hall Light
+
+# Enables the frontend
+frontend:
+
+# apiai:
+  # intents:
+    # GetTemperature:
+      # speech: It is {{states.sensor.broadlink_sensor_temperature.state}} degrees
+      # async_action: False
+      # action:
+        # service: notify.PushBullet
+        # data_template:
+          # message: Api.ai has send a request
+
+http:
+
+  api_password: !secret http_password
+  ssl_certificate: /ssl/fullchain.pem
+  ssl_key: /ssl/privkey.pem
+  base_url: ashesandscruff.duckdns.org
+  ip_ban_enabled: true
+  login_attempts_threshold: 5
+
+
+# Checks for available updates
+updater:
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time.
+history:
+
+# View all events in a logbook
+logbook:
+
+# Track the sun
+sun:
+
+alarm_control_panel:
+  platform: manual
+  name: "HA Alarm"
+  pending_time: 5
+  trigger_time: 5
+  disarm_after_trigger: false
+
+#emulated_hue:
+#    type: google_home
+#    listen_port: 80
+#    expose_by_default: true
+#    exposed_domains:
+#        - light
+
+binary_sensor:
+  - platform: mqtt
+    state_topic: dummy/floorplan/sensor
+    name: Floorplan
+
+sensor:
+  - platform: darksky
+    api_key: ea6d2568570f1bc326dd0cd43b30193f
+    monitored_conditions:
+      - summary
+      - nearest_storm_bearing
+      - precip_type
+      - precip_intensity
+      - precip_probability
+      - temperature
+      - wind_speed
+      - wind_bearing
+      - cloud_cover
+      - ozone
+      - hourly_summary
+      - daily_summary
+      - temperature_max
+      - temperature_min
+      - precip_intensity_max
+
+  - platform: broadlink
+    host: 192.168.1.222
+    mac: '34:ea:34:e7:ec:9c'
+    monitored_conditions:
+      - 'temperature'
+  - platform: etherscan
+    address: 0xb1d5df67c587a098222b69d4d7603338dedc51cb
+#  - platform: mqtt
+#    state_topic: 'sensor/temperature'
+#    name: 'Temperature'
+#    unit_of_measurement: '°C'
+#  - platform: mqtt
+#    state_topic: 'sensor/humidity'
+#    name: 'Humidity'
+#    unit_of_measurement: '%'
+
+  - platform: command_line
+    name: SSL cert expiry
+    unit_of_measurement: days
+    scan_interval: 86400
+    command: "ssl-cert-check -b -c /etc/letsencrypt/live/ashesandscruff.duckdns.org/cert.pem | awk '{ print $NF }'"
+  - platform: steam_online
+    api_key: 87DB9F76844E8608167D02D2E2B9F721
+    accounts:
+        - 76561197996141749
+  - platform: template
+    sensors:
+        inside_outside_compare:
+            value_template: '{{(states.sensor.dark_sky_temperature.state|float - states.sensor.broadlink_sensor_temperature.state|float)|round(1)}}'
+            friendly_name: 'Temp Difference'
+            unit_of_measurement: '°F'
+
+switch:
+    - platform: broadlink
+      host: 192.168.1.222
+      mac: '34:ea:34:e7:ec:9c'
+      timeout: 15
+      switches:
+        tv:
+            friendly_name: "TV Power"
+            command_on: 'JgBQAAABKJQSExETETgSExETERMRExITETgROBITETgROBI4EjcRORETERMRORETERMRExI4ETgROBI4ERMROBI4ETgSEhITEQAFpQABKUoRAA0FAAAAAAAAAAA='
+            command_off: 'JgBQAAABKJUSEhITETgRExITEhIRExETEjgROBETEjgROBE5EjcSNxI4ERMROBITERMSEhE5ETgRExI4ERMROBI4EjcSEhITEQAFpQABKUoSAA0FAAAAAAAAAAA='
+    #- platform: command_line
+     # switches:
+#         Switch for Foscam Motion Detection
+       #foscam_motion:
+      #   command_on: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=setMotionDetectConfig&isEnable=1&usr=Camcordi&pwd=2cats1apt"'
+       #  command_off: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=setMotionDetectConfig&isEnable=0&usr=Camcordi&pwd=2cats1apt"'
+        # command_state: 'curl -k --silent "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=getMotionDetectConfig&usr=Camcordi&pwd=2cats1apt" | grep -oP "(?<=isEnable>).*?(?=</isEnable>)"'
+         #value_template: '{{ value == "1" }}'
+       
+       
+shell_command:
+  #Created a preset point in Foscam Web Interface named Off which essentially points the camera down and away
+  foscam_turn_off: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=ptzGotoPresetPoint&name=TopMost&usr=Camcordi&pwd=2cats1apt"'
+  #Created a preset point in Foscam Web Interface named Main which points in the direction I would like to record
+  catsat_scruffhut: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=ptzGotoPresetPoint&name=Cats1&usr=Camcordi&pwd=2cats1apt"'
+  catsat_blinded: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=ptzGotoPresetPoint&name=TopMost&usr=Camcordi&pwd=2cats1apt"'
+  catsat_desk: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=ptzGotoPresetPoint&name=Desk&usr=Camcordi&pwd=2cats1apt"'
+  catsat_tallestcat: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=ptzGotoPresetPoint&name=TallestCat&usr=Camcordi&pwd=2cats1apt"'
+  catsat_kitchendoor: 'curl -k "https://192.168.1.164:443/cgi-bin/CGIProxy.fcgi?cmd=ptzGotoPresetPoint&name=KitchenDoor&usr=Camcordi&pwd=2cats1apt"'
+# Text to speech
+tts:
+  platform: google
+  
+map:
+
+
+
+
+ifttt:
+  key: deV9tyR2svr12GI_s2eJrI
+
+
+# media_player:
+  # - platform: gpmdp
+    # host: 192.168.1.204  
+
+light:
+  - platform: flux_led
+    automatic_add: True
+    devices:
+        192.168.1.201:
+            name: flux_window
+            mode: "rgb"
+  - platform: mqtt
+    name: "Bedroom LEDs"
+    command_topic: "bruh/mqttstrip/setpower"
+    state_topic: "bruh/mqttstrip/setpowerpub"
+    rgb_state_topic: "bruh/mqttstrip/setcolorpub"
+    rgb_command_topic: "bruh/mqttstrip/setcolor"
+    brightness_state_topic: "bruh/mqttstrip/setbrightnesspub"
+    brightness_command_topic: "bruh/mqttstrip/setbrightness"
+    optimistic: false
+  - platform: yeelight
+    devices:
+        192.168.1.161:
+            name: KitchenColor
+            transition: 1000
+            use_music_mode: True
+        192.168.1.162:
+            name: Fan2
+            transition: 1000
+            use_music_mode: True
+        192.168.1.163:
+            name: Fan3
+            transition: 1000
+            use_music_mode: True
+device_tracker:
+  - platform: nmap_tracker
+    hosts: 192.168.1.1/24
+    interval_seconds: 180
+    consider_home: 0:10:00
+  - platform: trackr
+    username: dramamoose@gmail.com
+    password: !secret trackr_password
+
+zwave:
+    #device_config: !include zwave_device_config.yaml
+    usb_path: /dev/ttyACM0
+    #config_path: /srv/homeassistant/src/python-openzwave/openzwave/config/
+    autoheal: False
+    device_config:
+        light.lamp_level:
+            polling_intensity: 1
+            refresh_value: true
+        light.entry_level:
+            polling_intensity: 1
+            refresh_value: true
+        light.kitchena_level:
+            polling_intensity: 1
+            refresh_value: true
+        light.kitchenb_level:
+            polling_intensity: 1
+            refresh_value: true
+mqtt:
+  broker: 192.168.1.151
+  port: 1883
+  client_id: home-assistant-1
+  username: pi
+  password: !secret mqtt_password
+camera:
+  - platform: generic
+    still_image_url: https://radblast.wunderground.com/cgi-bin/radar/WUNIDS_map?station=MTX&brand=wui&num=10&delay=15&type=N0R&frame=0&scale=1.000&noclutter=0&showstorms=0&mapx=400&mapy=240&centerx=400&centery=240&transx=0&transy=0&showlabels=1&severe=0&rainsnow=1&lightning=0&smooth=0&rand=24791352&lat=0&lon=0&label=you
+    name: SLCRadar
+    scan_interval: 60000
+
+  - platform: generic
+    still_image_url: https://radblast.wunderground.com/cgi-bin/radar/WUNIDS_map?station=LRX&brand=wui&num=10&delay=15&type=NCR&frame=0&scale=1.000&noclutter=0&showstorms=0&mapx=400&mapy=240&centerx=400&centery=240&transx=0&transy=0&showlabels=1&severe=0&rainsnow=1&lightning=0&smooth=0&rand=24788340&lat=0&lon=0&label=you
+    name: EKORadar
+    scan_interval: 60000
+
+  - platform: generic
+    still_image_url: http://www.ssd.noaa.gov/goes/west/weus/rb-animated.gif
+    name: Satellite
+    scan_interval: 60000
+  - platform: foscam
+    ip: 192.168.1.164
+    username: Camcordi
+    password: !secret foscam_password
+    name: CatSat
+
+
+automation: !include automations.yaml
+
+input_select:
+  foscam_position:
+    name: "CatSat Target"
+    options:
+     - "ScruffHut"
+     - "Kitchen/Door"     
+     - "Tallest Cat"
+     - "Desk"     
+     - "Nothing"
+    initial: Nothing 
+  bedroom_led_effect:
+    name: Bedroom Effect
+    options:
+     - "BPM"
+     - "Candy Cane"
+     - "Confetti"
+     - "Cyclon Rainbow"
+     - "Dots"
+     - "Fire"
+     - "Glitter"
+     - "Juggle"
+     - "Lightning"
+     - "Noise"
+     - "Police All"
+     - "Police One"
+     - "Rainbow"
+     - "Rainbow with Glitter"
+     - "Ripple"
+     - "Sinelon"
+     - "Solid"
+     - "Twinkle"
+    initial: "Solid"
+
+input_number:
+    brightness_lr:
+        name: Brightness
+        initial: 1
+        min: 1
+        max: 255
+        step: 1
+    bedroom_animation_speed:
+        name: Bedroom Animation Speed
+        initial: 150
+        min: 1
+        max: 150
+        step: 10
+scene:
+  - name: PurpleStudy
+    entities:
+      light.kitchenb_level:
+        state: off
+      light.entrylight_level_14_0:
+        state: off
+      light.lamp_level:
+        state: off
+      light.flux_window:
+        state: on
+        rgb_color: [4,0,11]
+      light.kitchena_level:
+        state: off
+  - name: FireLight
+    entities:
+      light.fan3:
+        state: on
+        brightness: 74
+        rgb_color: [144, 44, 0]
+      light.fan2:
+        state: on
+        brightness: 74
+        rgb_color: [157, 86, 0]
+      light.fan1:
+        state: on
+        brightness: 74
+        rgb_color: [141, 7, 0]
+  - name: Cool Ice
+    entities:
+      light.fan1:
+        state: on
+        brightness: 15
+        rgb_color: [82, 0, 124]
+      light.fan2:
+        state: on
+        brightness: 15
+        rgb_color: [0, 221, 236]
+      light.fan3:
+        state: on
+        brightness: 242
+        rgb_color: [0, 15, 254]
+
+
+script:
+    tv_antenna:
+        sequence:
+          - service: switch.turn_on
+            data:
+                entity_id: switch.tv_power
+          - delay: 00:00:05
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABJ5YRExETETcTExETERMSExETETgRORETETgSOBE4ETgSOBETETgSOBETETkRExE4ETkROBETERMSOBETETkRExETEQAFpgABJ0sRAA0FAAAAAAAAAAA="
+    tv_hdmi1_1:
+        sequence:
+          - service: switch.turn_on
+            data:
+                entity_id: switch.tv_power
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABL5QTFBIUFBMSFBMUExMTFBM3EjgSOBI4FDYTNxM3EzgTExQTEjgSFBQTEhQTFBIUExQSOBMUEjgSOBM3EzgTNxI4EgAFGQABLUsUAA0FAAAAAAAAAAA="
+          - delay: 00:00:05
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABJ5YTERETFDYTERMREhMRExMRETgUNhMREzcROBM2FDYTNhETFDYTNhMRFBERExM2EjgROBMRFBEROBE4FDYTERETEgAFpQABKEoSAA0FAAAAAAAAAAA="
+    tv_hdmi1_2:
+        sequence:
+          - service: switch.turn_on
+            data:
+                entity_id: switch.tv_power
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABLZUTFREUExQSFRMTExMTFBI4EzcSOBM3EzcTNxM3FDYUExIUExQSOBIUExQSFBMUEhQSOBQ2ExMTNxU2EjgTNxI4EwAFFwABLkoTAA0FAAAAAAAAAAA="
+          - delay: 00:00:05
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABJ5YTERETFDYTERMREhMRExMRETgUNhMREzcROBM2FDYTNhETFDYTNhMRFBERExM2EjgROBMRFBEROBE4FDYTERETEgAFpQABKEoSAA0FAAAAAAAAAAA="
+    tv_hdmi1_3:
+        sequence:
+          - service: switch.turn_on
+            data:
+                entity_id: switch.tv_power
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABLJYSFBQTEhQTFBIUExQSFBQ2EzgSOBI4EzcTNxQ2EzcTFBM3ExQSOBMTExQSFBMUEhUSFBQ2FBMTNxI4EjgTNxQ2EwAFGQABLkkTAA0FAAAAAAAAAAA="
+          - delay: 00:00:05
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABJ5YTERETFDYTERMREhMRExMRETgUNhMREzcROBM2FDYTNhETFDYTNhMRFBERExM2EjgROBMRFBEROBE4FDYTERETEgAFpQABKEoSAA0FAAAAAAAAAAA="
+    tv_hdmi1_4:
+        sequence:
+          - service: switch.turn_on
+            data:
+                entity_id: switch.tv_power
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABLpUTFBIUFBMSFBMUEhQUExQ2EzcUNhM4EjgTNxQ2EzcUExIUEzgTNxIUFBMTExMUExQSOBIUExQSOBM3EzcTOBM3EgAFGQABL0oSAA0FAAAAAAAAAAA="
+          - delay: 00:00:05
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABJ5YTERETFDYTERMREhMRExMRETgUNhMREzcROBM2FDYTNhETFDYTNhMRFBERExM2EjgROBMRFBEROBE4FDYTERETEgAFpQABKEoSAA0FAAAAAAAAAAA="
+    tv_hdmi1_5:
+        sequence:
+          - service: switch.turn_on
+            data:
+                entity_id: switch.tv_power
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABL5UUExIUExQSFBQTExQSFBM3EzgSOBI4EjgTNxQ3EjgSFBQTEhQTFBI4ExQUEhMUExMUNhQ3EzcUEhQ2FDcTNxQ2FAAFFwABLUsTAA0FAAAAAAAAAAA="
+          - delay: 00:00:05
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABJ5YTERETFDYTERMREhMRExMRETgUNhMREzcROBM2FDYTNhETFDYTNhMRFBERExM2EjgROBMRFBEROBE4FDYTERETEgAFpQABKEoSAA0FAAAAAAAAAAA="
+    tv_hdmi2:
+        sequence:
+          - service: switch.turn_on
+            data:
+                entity_id: switch.tv_power
+          - delay: 00:00:05
+          - service: broadlink.send_packet_192_168_1_222
+            data:
+                packet:
+                 - "JgBQAAABKJURFBEUETkSExITEhQSExEUETkRORIUETkRORE5EjkROREUERQRORI5ERQRFBE5EjgSOBM4ERQSExE5ETkSFBEUEQAFpQABKEsSAA0FAAAAAAAAAAA="
+    house_alarm:
+        sequence:
+          - service: media_player.volume_set
+            data:
+                entity_id: media_player.living_room_home
+                volume_level: ".8"
+          - service: light.turn_on
+            data:
+                entity_id: group.all_lights
+                brightness: "255"
+          - service: tts.google_say
+            data:
+                entity_id: media_player.living_room_home
+                message: 'Suprise, Mother Fucker!'
+          - service: light.turn_on
+            data:
+                entity_id: group.fanlight
+                effect: "Police"
+          - service: notify.PushBullet
+            data:
+                message: 'Alarm triggered at {{now().strftime("%Y-%m-%d-%H:%M:%S")}}'
+            
+panel_custom: 
+  - name: floorplan
+    sidebar_title: Floorplan
+    sidebar_icon: mdi:home
+    url_path: floorplan
+    config: !include floorplan.yaml
+    
+panel_iframe:
+  ide:
+    title: IDE
+    icon: mdi:code-braces
+    url: http://192.168.1.151:8321
+    
+google_assistant:
+  project_id: hass-actions
+  client_id: SColomtztuhx4HQ
+  access_token: fvMZ7QMTkj0TkmHn3f7c6jAu7KH0vsAvq3VgNwfEMvrt5mJKAqZNrlcj0gjz
+  exposed_domains:
+    - switch
+    - light
+    - group
+    - input_boolean
+    
+zone:
+  - name: Home
+    latitude: 40.763548 
+    longitude: -111.865620
+    radius: 50
+    icon: mdi:home
+  - name: Zions
+    latitude: 40.769728 
+    longitude: -111.877894
+    radius: 100
+    icon: mdi:bank
+  - name: Smiths
+    latitude: 40.759301 
+    longitude: -111.8875265
+    radius: 150
+    icon: mdi:cart
+    
+input_boolean:
+    cooking_mode:
+        name: Cooking Mode
+        initial: off
+        icon: mdi:pot-mix

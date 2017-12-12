@@ -1,0 +1,173 @@
+- action:
+  - data:
+      entity_id: group.kitchenlight
+    service: light.turn_off
+  alias: Kitchen Lights Off
+  hide_entity: false
+  id: '1496532246723'
+  trigger:
+  - entity_id: binary_sensor.kitchenmotion_sensor
+    from: 'on'
+    platform: state
+    to: 'off'
+  condition:
+  - condition: state
+    entity_id: input_boolean.cooking_mode
+    state: 'off'
+- action:
+  - data:
+      entity_id: group.kitchenlight
+    service: light.turn_on
+  alias: Kitchen Lights On Awake
+  hide_entity: true
+  id: '1496532643452'
+  trigger:
+  - entity_id: binary_sensor.kitchenmotion_sensor
+    from: 'off'
+    platform: state
+    to: 'on'
+- id: BrightnessLivingRoom
+  alias: Brightness Living Room
+  hide_entity: true
+  trigger:
+    platform: state
+    entity_id: input_slider.brightness_lr
+  action:
+    service: light.turn_on
+    data:
+      entity_id:
+      - light.entrylight_level
+      - light.lamp_level
+      - group.kitchenlight
+    data_template:
+      brightness: '{{ states( "input_slider.brightness_lr" )|round( 0 ) }}'
+- id: NightDoorLight
+  alias: Night Door Light
+  initial_state: true
+  hide_entity: true
+  trigger:
+  - entity_id: binary_sensor.door_sensor
+    from: 'off'
+    platform: state
+    to: 'on'
+  condition:
+  - condition: template
+    value_template: '{{ states.sun.sun.attributes.elevation < -6 }}'
+  action:
+  - service: light.turn_on
+    data:
+      brightness: '30'
+      entity_id: light.entrylight_level
+  - delay: 00:03:00
+  - service: light.turn_off
+    data:
+      entity_id: light.entrylight_level
+- id: BedroomAnimationSpeed
+  alias: Bedroom Animation Speed
+  initial_state: true
+  hide_entity: true
+  trigger:
+  - platform: state
+    entity_id: input_slider.bedroom_animation_speed
+  action:
+  - service: mqtt.publish
+    data_template:
+      topic: bruh/mqttstrip/setanimationspeed
+      payload: '{{ trigger.to_state.state | int }}'
+- id: BedroomAnimationSpeed
+  alias: Bedroom Input Effect
+  initial_state: true
+  hide_entity: true
+  trigger:
+  - platform: state
+    entity_id: input_select.bedroom_led_effect
+  action:
+  - service: mqtt.publish
+    data_template:
+      topic: bruh/mqttstrip/seteffect
+      payload: '{{ trigger.to_state.state | string }}'
+- action:
+  - data:
+      color_name: green
+      entity_id: light.flux_window
+    service: light.turn_on
+  - delay: 00:00:10
+  - data:
+      entity_id: light.flux_window
+    service: light.turn_off
+  alias: Open Windows
+  id: '1499234852980'
+  hide_entity: false
+  trigger:
+  - below: '0'
+    entity_id: sensor.inside_outside_compare
+    platform: numeric_state
+- action:
+  - data:
+      entity_id: alarm_control_panel.ha_alarm
+    service: alarm_control_panel.alarm_trigger
+  alias: Alarm Trigger
+  condition:
+  - condition: state
+    entity_id: alarm_control_panel.ha_alarm
+    state: armed_away
+  id: '1503182592345'
+  trigger:
+  - entity_id: binary_sensor.door_sensor
+    from: 'off'
+    platform: state
+    to: 'on'
+- action:
+  - service: script.house_alarm
+  alias: Home Alarm
+  condition: []
+  id: '1503183031796'
+  trigger:
+  - entity_id: alarm_control_panel.ha_alarm
+    platform: state
+    to: triggered
+- action:
+    service: shell_command.catsat_scruffhut
+  alias: Look at ScruffHut
+  hide_entity: true
+  id: Foscam1
+  trigger:
+  - entity_id: input_select.foscam_position
+    platform: state
+    to: ScruffHut
+- action:
+    service: shell_command.catsat_kitchendoor
+  alias: Look at Kitchen
+  hide_entity: true
+  id: Foscam2
+  trigger:
+  - entity_id: input_select.foscam_position
+    platform: state
+    to: Kitchen/Door
+- action:
+    service: shell_command.catsat_tallestcat
+  alias: Look at Tallest Cat
+  hide_entity: true
+  id: Foscam3
+  trigger:
+  - entity_id: input_select.foscam_position
+    platform: state
+    to: Tallest Cat
+- action:
+    service: shell_command.catsat_desk
+  alias: Look at Desk
+  hide_entity: true
+  id: Foscam4
+  trigger:
+  - entity_id: input_select.foscam_position
+    platform: state
+    to: Desk
+- action:
+    service: shell_command.catsat_blinded
+  alias: Look at Nothing
+  hide_entity: true
+  id: Foscam5
+  trigger:
+  - entity_id: input_select.foscam_position
+    platform: state
+    to: Nothing
